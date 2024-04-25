@@ -18,6 +18,7 @@ char *cvtout[] = {
     /* COERASE */ "cl",             /* COERLN */ "ce",
 };
 
+int NCOLS, NLINES;                  /* size of the screen */
 char *curspos;
 
 /*

@@ -41,6 +41,31 @@ int oldttmode;                      /* Saved access mode of /dev/tty */
 static char *ttynm, *jname, *rfile;
 static clipboard_t pb, db;
 
+int tempfile;                       /* Temporary file */
+off_t tempseek;                     /* Offset in temporary file */
+char *tmpname;                      /* name of file, for do command */
+file_t file[MAXFILES];              /* Table of files */
+int curfile;
+window_t *winlist[MAXWINLIST];
+window_t *curwin;                   /* Current window */
+window_t paramwin;                  /* Window to enter arguments */
+window_t wholescreen;               /* The whole screen */
+int nwinlist;
+char intrflag;                      /* INTR signal occured */
+int userid, groupid;
+workspace_t *curwksp, *pickwksp;
+clipboard_t *pickbuf, *deletebuf;
+int cursorline;                     /* physical position of */
+int cursorcol;                      /* cursor from (0,0)=ulhc of text in window */
+char *cline;                        /* allocated array */
+int cline_len;                      /* used length */
+int param_len;
+char *param_str, param_type;
+int param_c0, param_r0, param_c1, param_r1;
+char *searchkey;
+int highlight_position;             /* Highlight the current cursor position */
+int message_displayed;              /* Arg area contains an error message */
+
 static void checksig(int);
 
 /*
@@ -88,8 +113,14 @@ static void startup(int restart)
         /* ignore errors */;
     userid = getuid();
     groupid = getgid();
-    setuid(userid);
-    setgid(groupid);
+    if (setuid(userid) < 0) {
+        puts1("Can't set user id.\n");
+        exit(1);
+    }
+    if (setgid(groupid) < 0) {
+        puts1("Can't set group id.\n");
+        exit(1);
+    }
     name = getenv("USER");
     if (! name)
         name = getnm(userid);
